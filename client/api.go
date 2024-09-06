@@ -24,7 +24,7 @@ func NewApi(host, accessToken string) (*Api, error) {
 }
 
 func (a *Api) Test() bool {
-	resp, err := getRequest().Get(a.host + "/test")
+	resp, err := a.getRequest().Get(a.host + "/test")
 	if err != nil {
 		return false
 	}
@@ -34,7 +34,7 @@ func (a *Api) Test() bool {
 func (a *Api) IssueCode(xuid string) (*server.CodeInformation, error) {
 	var responsePayload server.Payload
 	var response server.CodeInformation
-	resp, err := getRequest().SetBody(xuid).Post(a.host + "/codes/issue")
+	resp, err := a.getRequest().SetBody(xuid).Post(a.host + "/codes/issue")
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +45,7 @@ func (a *Api) IssueCode(xuid string) (*server.CodeInformation, error) {
 	if responsePayload.Error != nil {
 		return nil, errors.New(responsePayload.Error.Message)
 	}
-	err = mapstructure.Decode(responsePayload, &response)
+	err = mapstructure.Decode(responsePayload.Data, &response)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (a *Api) IssueCode(xuid string) (*server.CodeInformation, error) {
 func (a *Api) CheckCode(code string) (*server.CodeInformation, error) {
 	var responsePayload server.Payload
 	var response server.CodeInformation
-	resp, err := getRequest().SetBody(code).Post(a.host + "/codes/check")
+	resp, err := a.getRequest().SetBody(code).Post(a.host + "/codes/check")
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (a *Api) CheckCode(code string) (*server.CodeInformation, error) {
 	if responsePayload.Error != nil {
 		return nil, errors.New(responsePayload.Error.Message)
 	}
-	err = mapstructure.Decode(responsePayload, &response)
+	err = mapstructure.Decode(responsePayload.Data, &response)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func (a *Api) CheckCode(code string) (*server.CodeInformation, error) {
 func (a *Api) RevokeCode(code string) (*server.CodeInformation, error) {
 	var responsePayload server.Payload
 	var response server.CodeInformation
-	resp, err := getRequest().SetBody(code).Post(a.host + "/codes/revoke")
+	resp, err := a.getRequest().SetBody(code).Post(a.host + "/codes/revoke")
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +88,7 @@ func (a *Api) RevokeCode(code string) (*server.CodeInformation, error) {
 	if responsePayload.Error != nil {
 		return nil, errors.New(responsePayload.Error.Message)
 	}
-	err = mapstructure.Decode(responsePayload, &response)
+	err = mapstructure.Decode(responsePayload.Data, &response)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func (a *Api) RevokeCode(code string) (*server.CodeInformation, error) {
 func (a *Api) GetUserByDiscord(discordId string) (*server.User, error) {
 	var responsePayload server.Payload
 	var response server.User
-	resp, err := getRequest().SetPathParams(map[string]string{"{discord}": discordId}).Get(a.host + "/users/discord/{discord}")
+	resp, err := a.getRequest().SetPathParams(map[string]string{"{discord}": discordId}).Get(a.host + "/users/discord/{discord}")
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +109,7 @@ func (a *Api) GetUserByDiscord(discordId string) (*server.User, error) {
 	if responsePayload.Error != nil {
 		return nil, errors.New(responsePayload.Error.Message)
 	}
-	err = mapstructure.Decode(responsePayload, &response)
+	err = mapstructure.Decode(responsePayload.Data, &response)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +119,7 @@ func (a *Api) GetUserByDiscord(discordId string) (*server.User, error) {
 func (a *Api) GetUserByXUID(xuid string) (*server.User, error) {
 	var responsePayload server.Payload
 	var response server.User
-	resp, err := getRequest().SetPathParams(map[string]string{"xuid": xuid}).Get(a.host + "/users/xuid/{xuid}")
+	resp, err := a.getRequest().SetPathParams(map[string]string{"xuid": xuid}).Get(a.host + "/users/xuid/{xuid}")
 	if err != nil {
 		return nil, err
 	}
@@ -130,13 +130,13 @@ func (a *Api) GetUserByXUID(xuid string) (*server.User, error) {
 	if responsePayload.Error != nil {
 		return nil, errors.New(responsePayload.Error.Message)
 	}
-	err = mapstructure.Decode(responsePayload, &response)
+	err = mapstructure.Decode(responsePayload.Data, &response)
 	if err != nil {
 		return nil, err
 	}
 	return &response, nil
 }
 
-func getRequest() *resty.Request {
-	return resty.New().R()
+func (a *Api) getRequest() *resty.Request {
+	return resty.New().R().SetHeader("Authorization", a.accessToken)
 }

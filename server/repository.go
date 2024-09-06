@@ -19,13 +19,13 @@ type Repository interface {
 	DeleteUserByXUID(xuid string) error
 }
 
-type sqliteUser struct {
+type UserData struct {
 	*gorm.Model
 	Discord string
 	XUID    string `gorm:"column:xuid"`
 }
 
-func (u *sqliteUser) ToUser() *User {
+func (u *UserData) ToUser() *User {
 	return &User{
 		Discord: u.Discord,
 		XUID:    u.XUID,
@@ -41,6 +41,10 @@ func NewDefaultRepository() (Repository, error) {
 	if err != nil {
 		return nil, err
 	}
+	err = db.AutoMigrate(&UserData{})
+	if err != nil {
+		return nil, err
+	}
 
 	return &defaultRepository{
 		db: db,
@@ -48,7 +52,7 @@ func NewDefaultRepository() (Repository, error) {
 }
 
 func (r *defaultRepository) GetUserByDiscord(discordId string) (*User, error) {
-	var user sqliteUser
+	var user UserData
 	err := r.db.First(&user, "discord = ?", discordId).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -60,7 +64,7 @@ func (r *defaultRepository) GetUserByDiscord(discordId string) (*User, error) {
 }
 
 func (r *defaultRepository) GetUserByXUID(xuid string) (*User, error) {
-	var user sqliteUser
+	var user UserData
 	err := r.db.First(&user, "xuid = ?", xuid).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -72,7 +76,7 @@ func (r *defaultRepository) GetUserByXUID(xuid string) (*User, error) {
 }
 
 func (r *defaultRepository) CreateUser(discordId, xuid string) (*User, error) {
-	var user sqliteUser
+	var user UserData
 	err := r.db.First(&user, "discord = ? OR xuid = ?", discordId, xuid).Error
 	if err == nil {
 		return nil, NewApplicationError(40000, "Either discord or XUID are already bound")
