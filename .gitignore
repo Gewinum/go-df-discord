@@ -8,3 +8,4 @@ test.db
 /world/
 /players/
 /resources/
+config.toml
