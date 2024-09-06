@@ -1,0 +1,10 @@
+# App data
+test.db
+
+# JetBrains
+.idea/
+
+# Dragonfly
+/world/
+/players/
+/resources/
