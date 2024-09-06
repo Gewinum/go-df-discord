@@ -49,7 +49,7 @@ func (b *Bot) RegisterCommands(guildId string) {
 		"bind": func(i *discordgo.InteractionCreate, options map[string]*discordgo.ApplicationCommandInteractionDataOption) string {
 			codeInfo, err := b.service.CheckCode(options["code"].StringValue())
 			if err != nil {
-				if errors.Is(err, &ApplicationError{}) {
+				if errors.As(err, &ApplicationError{}) {
 					return err.Error()
 				} else {
 					return "Something went wrong"
@@ -58,19 +58,20 @@ func (b *Bot) RegisterCommands(guildId string) {
 			discordId := i.Member.User.ID
 			_, err = b.service.CreateUser(discordId, codeInfo.XUID)
 			if err != nil {
-				if errors.Is(err, &ApplicationError{}) {
+				if errors.As(err, &ApplicationError{}) {
 					return err.Error()
 				} else {
 					return "Something went wrong"
 				}
 			}
+			_ = b.service.RevokeCode(codeInfo.Code)
 			return "Binding has been created successfully"
 		},
 		"unbind": func(i *discordgo.InteractionCreate, options map[string]*discordgo.ApplicationCommandInteractionDataOption) string {
 			discordId := i.Member.User.ID
 			err := b.service.DeleteUserByDiscord(discordId)
 			if err != nil {
-				if errors.Is(err, &ApplicationError{}) {
+				if errors.As(err, &ApplicationError{}) {
 					return err.Error()
 				} else {
 					return "Something went wrong"

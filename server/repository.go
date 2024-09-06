@@ -98,7 +98,7 @@ func (r *defaultRepository) DeleteUserByDiscord(discordId string) error {
 		}
 		return err
 	}
-	r.db.Delete(user)
+	r.db.Delete(&UserData{}, "discord = ?", user.Discord)
 	return nil
 }
 
@@ -110,6 +110,6 @@ func (r *defaultRepository) DeleteUserByXUID(xuid string) error {
 		}
 		return err
 	}
-	r.db.Delete(user)
+	r.db.Delete(&UserData{}, "xuid = ?", user.XUID)
 	return nil
 }
